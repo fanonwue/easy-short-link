@@ -32,10 +32,8 @@ export default class GoogleSheetsRepository implements Repository {
                 if (rows.length) {
                     const map = new Map<string, string>();
                     rows.map(row => {
-                        console.log(`${row[0]}, ${row[1]}`)
                         map.set(row[0], row[1])
                     })
-                    console.log(map);
                     resolve(map);
                 } else {
                     console.warn("No data found in spreadsheet")
