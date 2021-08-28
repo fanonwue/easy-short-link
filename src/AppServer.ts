@@ -70,16 +70,22 @@ export default class AppServer {
         sheetsConfig.sheetId = config.spreadsheetId;
 
         this.repository = new GoogleSheetsRepository(sheetsConfig);
-        await this.updateMapping();
-        this.startAutoUpdate();
+        await this.startAutoUpdate();
 
     }
 
-    private startAutoUpdate() {
+    /**
+     *
+     * @private
+     * @return Promise<any> which resolves once the initial update has been completed
+     */
+    private async startAutoUpdate() : Promise<void> {
         console.info(`Starting auto update at an interval of ${this.updateInterval} seconds`)
-        this.timer = setTimeout(async () => {
+        const promise = this.updateMapping();
+        this.timer = setInterval(async () => {
             await this.updateMapping();
-        }, this.updateInterval)
+        }, this.updateInterval * 1000)
+        return promise;
     }
 
     private stopAutoUpdate() {
