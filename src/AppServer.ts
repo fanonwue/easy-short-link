@@ -1,14 +1,14 @@
 import {Server, createServer} from "http";
 import Repository from "./Repository/Repository";
 import GoogleSheetsRepository from "./Repository/GoogleSheetsRepository";
-import * as fs from "fs";
-import GoogleSheetsConfig from "./GoogleSheetsConfig";
+import {readFile} from "fs/promises";
+import GoogleSheetsConfig from "./Config/GoogleSheetsConfig";
 import path from "path";
+import GoogleSheetsOAuth2Config from "./Config/GoogleSheetsOAuth2Config";
+import {CONFIG_PATH} from "./options";
+import GoogleSheetsServiceAccountConfig from "./Config/GoogleSheetsServiceAccountConfig";
 
 export default class AppServer {
-
-    static readonly CONFIG_PATH = path.join(__dirname, '..', 'config');
-
     private readonly port: number;
     private readonly updateInterval: number;
     private server: Server;
@@ -48,16 +48,26 @@ export default class AppServer {
 
     private async init() {
         console.info("Setting up server...")
-        const config = await new Promise(resolve => {
-            fs.readFile(path.join(AppServer.CONFIG_PATH, 'config.json'), (err, data) => {
-                resolve(JSON.parse(data.toString()));
-            })
-        })
 
-        const sheetsConfig = new GoogleSheetsConfig();
+        const config = await readFile(path.join(CONFIG_PATH, 'config.json')).then(data => {
+            return JSON.parse(data.toString())
+        });
+
+        let sheetsConfig;
+
+        // @ts-ignore
+        switch (config.authentication) {
+            case 'oauth2':
+                sheetsConfig = await GoogleSheetsOAuth2Config.fromFile();
+                break;
+            case 'service':
+            default:
+                sheetsConfig = new GoogleSheetsServiceAccountConfig();
+                break;
+        }
+
         // @ts-ignore
         sheetsConfig.sheetId = config.spreadsheetId;
-        sheetsConfig.keyFile = path.join(AppServer.CONFIG_PATH, 'service-account.json');
 
         this.repository = new GoogleSheetsRepository(sheetsConfig);
         await this.updateMapping();

@@ -4,7 +4,9 @@
   "description": "",
   "main": "dist/app.js",
   "scripts": {
-    "start": "tsc && node dist/app.js",
+    "dev": "tsc && node dist/app.js",
+    "start": "node dist/app.js",
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -26,6 +28,8 @@
   },
   "dependencies": {
     "console-stamp": "^3.0.3",
-    "googleapis": "^84.0.0"
+    "google-auth-library": "^7.6.2",
+    "googleapis": "^84.0.0",
+    "googleapis-common": "^5.0.4"
   }
 }
