@@ -1,0 +1,31 @@
+{
+  "name": "easy-short-link",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/app.js",
+  "scripts": {
+    "start": "tsc && node dist/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "link-shortener",
+    "link shortener",
+    "short link"
+  ],
+  "author": {
+    "name": "Fabian Wünderich",
+    "email": "fabian@wuenderich.de",
+    "url": "https://github.com/fanonwue"
+  },
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "@types/gapi": "0.0.41",
+    "@types/node": "^16.7.2",
+    "tslint": "^6.1.3",
+    "typescript": "^4.3.5"
+  },
+  "dependencies": {
+    "console-stamp": "^3.0.3",
+    "googleapis": "^84.0.0"
+  }
+}
