@@ -126,7 +126,7 @@ export default class GoogleSheetsRepository implements Repository {
                 return;
             }
 
-            console.error(`Could not retrieve file metadata for file ${this.config.sheetId}`);
+            console.error(`Could not retrieve file metadata for file ${this.config.sheetId}`, err);
             return err;
         })
     }
