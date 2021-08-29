@@ -4,6 +4,7 @@ export default abstract class GoogleSheetsConfig {
         'https://www.googleapis.com/auth/spreadsheets.readonly'
     ];
     public sheetId: string;
+    public skipFirstRow: boolean;
 
     public getScopes() : string[] {
         return this.scopes;

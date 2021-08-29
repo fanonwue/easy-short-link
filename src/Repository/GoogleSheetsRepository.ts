@@ -146,12 +146,16 @@ export default class GoogleSheetsRepository implements Repository {
         return modifiedTime > this.lastUpdate;
     }
 
+    private getRange() {
+        return this.config.skipFirstRow ? "A2:B" : "A:B";
+    }
+
     async getMapping(): Promise<Map<string, string>> {
         const sheets = google.sheets({version: "v4", auth: await this.getAuth()})
         return new Promise((resolve, reject) => {
             sheets.spreadsheets.values.get({
                 spreadsheetId: this.config.sheetId,
-                range: "A:B"
+                range: this.getRange()
             }, ((err, res) => {
                 const rows = res.data.values;
 

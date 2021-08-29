@@ -54,7 +54,7 @@ export default class AppServer {
             return JSON.parse(data.toString())
         });
 
-        let sheetsConfig;
+        let sheetsConfig: GoogleSheetsConfig;
 
         switch (config.authentication) {
             case 'oauth2':
@@ -67,6 +67,7 @@ export default class AppServer {
         }
 
         sheetsConfig.sheetId = config.spreadsheetId;
+        sheetsConfig.skipFirstRow = config.skipFirstRow !== undefined ? config.skipFirstRow : false;
 
         this.repository = new GoogleSheetsRepository(sheetsConfig);
         await this.startAutoUpdate();
