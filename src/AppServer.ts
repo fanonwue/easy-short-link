@@ -93,8 +93,12 @@ export default class AppServer {
     }
 
     private async updateMapping() {
-        this.mapping = await this.repository.getMapping()
-        console.info(`Updated mapping, received ${this.mapping.size} entries`)
+        if (await this.repository.needsUpdate()) {
+            this.mapping = await this.repository.getMapping()
+            console.info(`Updated mapping, received ${this.mapping.size} entries`)
+        } else {
+            console.log('Data source not modified, skipping update')
+        }
     }
 
 }

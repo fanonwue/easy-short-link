@@ -9,7 +9,8 @@ import GoogleSheetsServiceAccountConfig from "../Config/GoogleSheetsServiceAccou
 export default class GoogleSheetsRepository implements Repository {
     private readonly config: GoogleSheetsConfig;
     private readonly spreadsheetId: string;
-    private lastUpdate: Date|null;
+    private lastUpdate: Date|undefined;
+    private checkModificationTime: boolean = true;
     private oauth2Client: OAuth2Client;
     private serviceUserAuth: GoogleAuth;
 
@@ -103,6 +104,42 @@ export default class GoogleSheetsRepository implements Repository {
             scopes: config.getScopes()
         })
 
+    }
+
+    async getModifiedTime() : Promise<Date|undefined> {
+        const drive = google.drive({version: "v3", auth: await this.getAuth()})
+        return drive.files.get({
+            fileId: this.config.sheetId,
+            fields: 'modifiedTime'
+        }).then(res => {
+            const time = res.data.modifiedTime;
+            return new Date(time);
+        }).catch(err => {
+            const errorObject = err.response.data.error;
+            if (errorObject.code === 403 && this.isAccessNotConfiguredError(errorObject.errors)) {
+                console.warn("Google Drive API has not been added to the project, skipping modification checks");
+                this.checkModificationTime = false;
+                return;
+            }
+
+            console.error(`Could not retrieve file metadata for file ${this.config.sheetId}`);
+            return err;
+        })
+    }
+
+    private async isAccessNotConfiguredError(errors: Array<any>) {
+        const errorReason = "accessNotConfigured";
+        errors.forEach(error => {
+            if (error.reason === errorReason) return true;
+        })
+        return false;
+    }
+
+    async needsUpdate() : Promise<boolean> {
+        if (!this.lastUpdate || !this.checkModificationTime) return true;
+        const modifiedTime = await this.getModifiedTime();
+        if (!(modifiedTime instanceof Date)) return true;
+        return modifiedTime > this.lastUpdate;
     }
 
     async getMapping(): Promise<Map<string, string>> {
