@@ -6,6 +6,10 @@ import GoogleSheetsOAuth2Config from "../Config/GoogleSheetsOAuth2Config";
 import {Credentials, GoogleAuth, OAuth2Client} from "google-auth-library";
 import GoogleSheetsServiceAccountConfig from "../Config/GoogleSheetsServiceAccountConfig";
 
+google.options({
+    http2: true
+})
+
 export default class GoogleSheetsRepository implements Repository {
     private readonly config: GoogleSheetsConfig;
     private readonly spreadsheetId: string;
