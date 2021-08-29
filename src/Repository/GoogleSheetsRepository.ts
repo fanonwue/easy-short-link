@@ -119,8 +119,8 @@ export default class GoogleSheetsRepository implements Repository {
             const time = res.data.modifiedTime;
             return new Date(time);
         }).catch(err => {
-            const errorObject = err.response.data.error;
-            if (errorObject.code === 403 && this.isAccessNotConfiguredError(errorObject.errors)) {
+            const errorObject = err.response ? err.response.data.error : null;
+            if (errorObject && errorObject.code === 403 && this.isAccessNotConfiguredError(errorObject.errors)) {
                 console.warn("Google Drive API has not been added to the project, skipping modification checks");
                 this.checkModificationTime = false;
                 return;
