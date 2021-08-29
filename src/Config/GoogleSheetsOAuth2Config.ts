@@ -5,6 +5,7 @@ import AppServer from "../AppServer";
 import path from "path";
 import {readFile, writeFile} from "fs/promises";
 import {CONFIG_PATH} from "../options";
+import {OAuth2Credentials} from "../types";
 
 export default class GoogleSheetsOAuth2Config extends GoogleSheetsConfig {
     private static readonly defaultFilePath = path.join(CONFIG_PATH, 'oauth2-credentials.json');
@@ -42,7 +43,7 @@ export default class GoogleSheetsOAuth2Config extends GoogleSheetsConfig {
     static async fromFile(filePath: string|undefined = undefined) : Promise<GoogleSheetsOAuth2Config> {
         if (!filePath) filePath = GoogleSheetsOAuth2Config.defaultFilePath;
 
-        const props = await readFile(filePath).then(data => {
+        const props: OAuth2Credentials = await readFile(filePath).then(data => {
             return JSON.parse(data.toString());
         }).catch(err => {
             console.error(`error reading ${path}`, err);

@@ -7,6 +7,7 @@ import path from "path";
 import GoogleSheetsOAuth2Config from "./Config/GoogleSheetsOAuth2Config";
 import {CONFIG_PATH} from "./options";
 import GoogleSheetsServiceAccountConfig from "./Config/GoogleSheetsServiceAccountConfig";
+import {ConfigFile} from "./types";
 
 export default class AppServer {
     private readonly port: number;
@@ -49,13 +50,12 @@ export default class AppServer {
     private async init() {
         console.info("Setting up server...")
 
-        const config = await readFile(path.join(CONFIG_PATH, 'config.json')).then(data => {
+        const config: ConfigFile = await readFile(path.join(CONFIG_PATH, 'config.json')).then(data => {
             return JSON.parse(data.toString())
         });
 
         let sheetsConfig;
 
-        // @ts-ignore
         switch (config.authentication) {
             case 'oauth2':
                 sheetsConfig = await GoogleSheetsOAuth2Config.fromFile();
@@ -66,7 +66,6 @@ export default class AppServer {
                 break;
         }
 
-        // @ts-ignore
         sheetsConfig.sheetId = config.spreadsheetId;
 
         this.repository = new GoogleSheetsRepository(sheetsConfig);
