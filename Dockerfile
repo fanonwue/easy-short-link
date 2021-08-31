@@ -3,7 +3,7 @@ FROM node:lts-alpine
 ENV NODE_ENV dev
 WORKDIR /var/app
 COPY ["./package.json", "./package-lock.json", "./tsconfig.json", "./"]
-RUN npm install
+RUN npm ci
 COPY ./src ./src
 RUN npm run build
 RUN npm prune --production
