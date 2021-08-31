@@ -1,7 +1,8 @@
 {
   "name": "easy-short-link",
   "version": "1.0.0",
-  "description": "",
+  "description": "A small link shortener based on Google Sheets",
+  "repository": "https://github.com/fanonwue/easy-short-link",
   "main": "dist/app.js",
   "scripts": {
     "dev": "tsc && node dist/app.js",
