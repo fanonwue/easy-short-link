@@ -1,4 +1,6 @@
 # Easy Short-Link
+[![build-container](https://github.com/fanonwue/easy-short-link/actions/workflows/build-container.yml/badge.svg)](https://github.com/fanonwue/easy-short-link/actions/workflows/build-container.yml)
+
 This project contains a small link-shortener application based on NodeJS. At this stage, it only supports
 Google Sheets as it's data source, although more sources could be added in the future.
 
