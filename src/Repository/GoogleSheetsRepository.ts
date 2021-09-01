@@ -158,7 +158,13 @@ export default class GoogleSheetsRepository implements Repository {
                 if (rows.length) {
                     const map = new Map<string, string>();
                     rows.map(row => {
-                        map.set(row[0], row[1])
+                        const alias = row[0];
+                        const target = row[1];
+
+                        // Skip if alias or target is empty
+                        if (!alias || !target) return
+
+                        map.set(alias, target)
                     })
                     this.lastUpdate = new Date();
                     resolve(map);
