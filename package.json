@@ -31,6 +31,6 @@
     "console-stamp": "^3.0.3",
     "google-auth-library": "^7.9.1",
     "googleapis": "^85.0.0",
-    "googleapis-common": "^5.0.4"
+    "googleapis-common": "^5.0.5"
   }
 }
