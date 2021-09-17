@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "console-stamp": "^3.0.3",
-    "google-auth-library": "^7.9.1",
+    "google-auth-library": "^7.9.2",
     "googleapis": "^86.1.0",
     "googleapis-common": "^5.0.5"
   }
