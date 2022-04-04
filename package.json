@@ -30,7 +30,7 @@
   "dependencies": {
     "console-stamp": "^3.0.4",
     "google-auth-library": "^7.14.1",
-    "googleapis": "^99.0.0",
+    "googleapis": "^100.0.0",
     "googleapis-common": "^5.0.5"
   }
 }
