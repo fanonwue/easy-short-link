@@ -30,6 +30,6 @@
   "dependencies": {
     "console-stamp": "^3.0.4",
     "googleapis": "^100.0.0",
-    "googleapis-common": "^5.1.0"
+    "googleapis-common": "^6.0.0"
   }
 }
