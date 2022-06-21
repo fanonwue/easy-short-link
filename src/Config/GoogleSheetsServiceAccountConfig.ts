@@ -5,11 +5,10 @@ import {CONFIG_PATH} from "../options";
 export default class GoogleSheetsServiceAccountConfig extends GoogleSheetsConfig {
     private static readonly defaultKeyFile = path.join(CONFIG_PATH, 'service-account-credentials.json');
 
-    public readonly keyFile: string|undefined;
+    public readonly keyFile: string;
 
-    constructor(keyFile: string|undefined = undefined) {
+    constructor(keyFile: string = GoogleSheetsServiceAccountConfig.defaultKeyFile) {
         super();
-        if (!keyFile) keyFile = GoogleSheetsServiceAccountConfig.defaultKeyFile;
         this.keyFile = keyFile;
     }
 }

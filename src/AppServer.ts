@@ -42,7 +42,7 @@ export default class AppServer {
     }
 
     private getTargetUrl(url: string) : string|undefined {
-        if (url[0] === '/') url = url.substr(1);
+        if (url[0] === '/') url = url.substring(1);
         return this.mapping.get(url);
     }
 

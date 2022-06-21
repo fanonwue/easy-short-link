@@ -10,4 +10,6 @@ const PORT = parseInt(process.env.APP_PORT) || 5000;
 const UPDATE_PERIOD = parseInt(process.env.APP_UPDATE_PERIOD) || 300; // 5 minutes default
 
 const appServer = new AppServer(PORT, UPDATE_PERIOD);
-appServer.run()
+appServer.run().then(() => {
+    console.info("Server started")
+})
