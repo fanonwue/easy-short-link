@@ -3,8 +3,7 @@ import {google} from 'googleapis';
 import {exit} from "process";
 import GoogleSheetsConfig from "../Config/GoogleSheetsConfig";
 import GoogleSheetsOAuth2Config from "../Config/GoogleSheetsOAuth2Config";
-import {GoogleAuth, OAuth2Client} from "googleapis-common";
-import {Credentials} from "google-auth-library"
+import {Credentials, GoogleAuth, OAuth2Client} from "google-auth-library"
 import GoogleSheetsServiceAccountConfig from "../Config/GoogleSheetsServiceAccountConfig";
 
 export default class GoogleSheetsRepository implements Repository {
