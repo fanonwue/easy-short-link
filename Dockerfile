@@ -18,4 +18,4 @@ COPY --from=0 /var/app/node_modules ./node_modules
 COPY --from=0 /var/app/dist dist/
 
 EXPOSE 5000
-CMD ["npm", "run", "start"]
+ENTRYPOINT ["npm", "run", "start"]
