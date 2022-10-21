@@ -1,0 +1,65 @@
+<!--
+ This is a mustache (https://mustache.github.io/) file
+ -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 1em;
+            max-width: 600px;
+            margin: auto;
+        }
+
+        #cancel-button {
+            width: 100%;
+            margin: auto;
+            background-color: #383838;
+            color: white;
+            border-radius: 0;
+            text-decoration: none;
+            padding: .5em;
+            text-transform: capitalize;
+        }
+
+        #cancel-button:hover {
+            background-color: #565656;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <title><%=title=%></title>
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', () => {
+            const timeoutSeconds = Math.round(parseInt("{{redirectTimeout}}") / 1000)
+            const secondsLeftElement = document.getElementById('seconds-left')
+            secondsLeftElement.textContent = timeoutSeconds.toString()
+            let timeLeft = timeoutSeconds
+
+            let interval = setInterval(() => {
+                timeLeft = Math.max(timeLeft - 1, 0)
+                if (timeLeft <= 0) location.href = "{{& link}}"
+                if (timeLeft >= 0) secondsLeftElement.textContent = timeLeft.toString()
+            }, 1000)
+
+            document.getElementById("cancel-button").addEventListener("click", () => {
+                clearInterval(interval)
+            })
+        })
+    </script>
+</head>
+<body>
+    <div>
+        <p><%=line1=%></p>
+        <p><a href="{{& link}}">{{link}}</a></p>
+        <p><%=line2=%></p>
+    </div>
+    <div>
+        <button type="button" id="cancel-button"><%=cancel=%></button>
+    </div>
+</body>
+</html>

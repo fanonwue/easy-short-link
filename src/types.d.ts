@@ -14,3 +14,10 @@ export interface OAuth2Credentials {
     refreshToken: string|undefined
     authorizationCode: string|undefined
 }
+
+export interface RedirectPageTexts {
+    title: string,
+    line1: string,
+    line2: string,
+    cancel: string
+}

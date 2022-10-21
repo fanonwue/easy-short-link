@@ -2,12 +2,14 @@ import {Server, createServer} from "http";
 import Repository from "./repository/Repository";
 import GoogleSheetsRepository from "./repository/GoogleSheetsRepository";
 import {readFile} from "fs/promises";
+import url from "url"
 import GoogleSheetsConfig from "./config/GoogleSheetsConfig";
 import path from "path";
 import GoogleSheetsOAuth2Config from "./config/GoogleSheetsOAuth2Config";
-import {CONFIG_PATH} from "./options";
+import {CONFIG_PATH, TEMPLATE_PATH, ALLOW_REDIRECT_PAGE} from "./options";
 import GoogleSheetsServiceAccountConfig from "./config/GoogleSheetsServiceAccountConfig";
-import {ConfigFile} from "./types";
+import {ConfigFile, RedirectPageTexts} from "./types";
+import mustache, {RenderOptions} from "mustache"
 
 export default class AppServer {
     private readonly port: number;
@@ -16,22 +18,32 @@ export default class AppServer {
     private repository: Repository;
     private mapping: Map<string, string>;
     private timer: NodeJS.Timer;
+    private defaultRedirectPageLanguage = "en"
+    private redirectTemplateMap = new Map<string, string>()
 
     constructor(port: number, updateInterval: number) {
         this.port = port;
         this.updateInterval = updateInterval
-
     }
 
     public async run() : Promise<any> {
         await this.init();
+        if (ALLOW_REDIRECT_PAGE) await this.loadRedirectTemplates();
         console.info("Starting HTTP Server...");
         this.server = createServer(async (req, res) => {
-            const target = this.getTargetUrl(req.url);
+            const parsedUrl = url.parse(req.url, true)
+            const target = this.getTargetUrl(parsedUrl.pathname);
+            const useRedirectPage = parsedUrl.query.confirm != null && ALLOW_REDIRECT_PAGE
+
             if (target) {
-                res.writeHead(302, {
-                    Location: target
-                })
+                if (!useRedirectPage) {
+                    res.writeHead(302, {
+                        //Location: target
+                    })
+                } else {
+                    res.writeHead(200)
+                    res.write(await this.redirectPageFor(target, req.headers["accept-language"]))
+                }
             } else {
                 res.statusCode = 404;
                 res.write("Not found.")
@@ -41,9 +53,28 @@ export default class AppServer {
         console.info(`HTTP Server listening on port ${this.port}`);
     }
 
-    private getTargetUrl(url: string) : string|undefined {
-        if (url[0] === '/') url = url.substring(1);
-        return this.mapping.get(url);
+    private async redirectPageFor(targetUrl: string, acceptLanguageHeader: string|undefined) : Promise<string> {
+        const redirectTimeout = 50000
+        const view = {
+            link: targetUrl,
+            redirectTimeout: redirectTimeout,
+            redirectSeconds: redirectTimeout / 1000
+        }
+
+        let template = this.redirectTemplateMap.get(this.preferredLanguage(acceptLanguageHeader))
+        if (template == null) template = this.redirectTemplateMap.get(this.defaultRedirectPageLanguage)
+
+        return mustache.render(template.toString(), view)
+    }
+
+    private preferredLanguage(acceptLanguageHeader: string|undefined) : string {
+        //TODO
+        return "en"
+    }
+
+    private getTargetUrl(path: string) : string|undefined {
+        if (path[0] === '/') path = path.substring(1);
+        return this.mapping.get(path);
     }
 
 
@@ -71,6 +102,38 @@ export default class AppServer {
 
         this.repository = new GoogleSheetsRepository(sheetsConfig);
         await this.startAutoUpdate();
+
+    }
+
+    private async loadRedirectTemplates() {
+        console.info("Generating Mustache redirect page templates")
+        const textObject = JSON.parse((await readFile(path.join(TEMPLATE_PATH, "texts.json"))).toString())
+        const textMap = new Map<string, RedirectPageTexts>(Object.entries(textObject))
+
+        const baseTemplate = (await readFile(path.join(TEMPLATE_PATH, "redirect.mustache"))).toString()
+        const options: RenderOptions = {
+            tags: ["<%=", "=%>"],
+            escape: value => value
+        }
+
+        const replaceSecondCounterPlaceholder = (texts: RedirectPageTexts): RedirectPageTexts => {
+            const secondCounterHtml = '<span id="seconds-left">{{redirectSeconds}}</span>'
+            for (const [k, v] of Object.entries(texts)) {
+                if (typeof v == "string") {
+                    texts[k] = v.replace("%SECOND_COUNTER%", secondCounterHtml)
+                }
+            }
+            return texts
+        }
+
+        for (let [lang, texts] of textMap) {
+            texts = replaceSecondCounterPlaceholder(texts)
+
+            const template = mustache.render(baseTemplate, texts, null, options)
+            this.redirectTemplateMap.set(lang, template)
+        }
+        const keys = Array.from(this.redirectTemplateMap.keys()).join(', ')
+        console.info(`Generated templates for languages: "${keys}" with fallback "${this.defaultRedirectPageLanguage}"`)
 
     }
 

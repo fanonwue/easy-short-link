@@ -1,0 +1,14 @@
+{
+  "en": {
+    "title": "Redirecting...",
+    "line1": "You are being redirected to",
+    "line2": "in %SECOND_COUNTER% seconds...",
+    "cancel": "Cancel"
+  },
+  "de": {
+    "title": "Leite weiter...",
+    "line1": "Sie werden in %SECOND_COUNTER% Sekunden nach",
+    "line2": "weitergeleitet...",
+    "cancel": "Abbrechen"
+  }
+}
