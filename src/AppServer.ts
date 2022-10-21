@@ -1,12 +1,12 @@
 import {Server, createServer} from "http";
-import Repository from "./Repository/Repository";
-import GoogleSheetsRepository from "./Repository/GoogleSheetsRepository";
+import Repository from "./repository/Repository";
+import GoogleSheetsRepository from "./repository/GoogleSheetsRepository";
 import {readFile} from "fs/promises";
-import GoogleSheetsConfig from "./Config/GoogleSheetsConfig";
+import GoogleSheetsConfig from "./config/GoogleSheetsConfig";
 import path from "path";
-import GoogleSheetsOAuth2Config from "./Config/GoogleSheetsOAuth2Config";
+import GoogleSheetsOAuth2Config from "./config/GoogleSheetsOAuth2Config";
 import {CONFIG_PATH} from "./options";
-import GoogleSheetsServiceAccountConfig from "./Config/GoogleSheetsServiceAccountConfig";
+import GoogleSheetsServiceAccountConfig from "./config/GoogleSheetsServiceAccountConfig";
 import {ConfigFile} from "./types";
 
 export default class AppServer {

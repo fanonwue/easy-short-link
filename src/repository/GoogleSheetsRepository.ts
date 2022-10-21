@@ -1,10 +1,10 @@
 import Repository from "./Repository";
 import {google} from 'googleapis';
 import {exit} from "process";
-import GoogleSheetsConfig from "../Config/GoogleSheetsConfig";
-import GoogleSheetsOAuth2Config from "../Config/GoogleSheetsOAuth2Config";
+import GoogleSheetsConfig from "../config/GoogleSheetsConfig";
+import GoogleSheetsOAuth2Config from "../config/GoogleSheetsOAuth2Config";
 import {Credentials, GoogleAuth, OAuth2Client} from "google-auth-library"
-import GoogleSheetsServiceAccountConfig from "../Config/GoogleSheetsServiceAccountConfig";
+import GoogleSheetsServiceAccountConfig from "../config/GoogleSheetsServiceAccountConfig";
 
 export default class GoogleSheetsRepository implements Repository {
     private readonly config: GoogleSheetsConfig;
