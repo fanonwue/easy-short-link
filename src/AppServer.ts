@@ -10,6 +10,7 @@ import {CONFIG_PATH, TEMPLATE_PATH, ALLOW_REDIRECT_PAGE} from "./options";
 import GoogleSheetsServiceAccountConfig from "./config/GoogleSheetsServiceAccountConfig";
 import {ConfigFile, RedirectPageTexts} from "./types";
 import mustache, {RenderOptions} from "mustache"
+import AcceptLanguagePicker from "./AcceptLanguagePicker";
 
 export default class AppServer {
     private readonly port: number;
@@ -18,8 +19,9 @@ export default class AppServer {
     private repository: Repository;
     private mapping: Map<string, string>;
     private timer: NodeJS.Timer;
-    private defaultRedirectPageLanguage = "en"
+    private defaultRedirectPageLanguage = AcceptLanguagePicker.DEFAULT_LANGUAGE
     private redirectTemplateMap = new Map<string, string>()
+    private acceptLanguagePicker: AcceptLanguagePicker
 
     constructor(port: number, updateInterval: number) {
         this.port = port;
@@ -68,8 +70,7 @@ export default class AppServer {
     }
 
     private preferredLanguage(acceptLanguageHeader: string|undefined) : string {
-        //TODO
-        return "en"
+        return this.acceptLanguagePicker.pick(acceptLanguageHeader)
     }
 
     private getTargetUrl(path: string) : string|undefined {
@@ -134,8 +135,9 @@ export default class AppServer {
             const template = mustache.render(baseTemplate, texts, null, options)
             this.redirectTemplateMap.set(lang, template)
         }
-        const keys = Array.from(this.redirectTemplateMap.keys()).join(', ')
-        console.info(`Generated templates for languages: "${keys}" with fallback "${this.defaultRedirectPageLanguage}"`)
+        const keys = Array.from(this.redirectTemplateMap.keys())
+        this.acceptLanguagePicker = new AcceptLanguagePicker(keys)
+        console.info(`Generated templates for languages: ${keys.join(', ')}; with fallback "${this.defaultRedirectPageLanguage}"`)
 
     }
 
