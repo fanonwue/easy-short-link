@@ -6,7 +6,7 @@ import url from "url"
 import GoogleSheetsConfig from "./config/GoogleSheetsConfig";
 import path from "path";
 import GoogleSheetsOAuth2Config from "./config/GoogleSheetsOAuth2Config";
-import {CONFIG_PATH, TEMPLATE_PATH, ALLOW_REDIRECT_PAGE} from "./options";
+import {CONFIG_PATH, TEMPLATE_PATH, ALLOW_REDIRECT_PAGE, REDIRECT_TIMEOUT} from "./options";
 import GoogleSheetsServiceAccountConfig from "./config/GoogleSheetsServiceAccountConfig";
 import {ConfigFile, RedirectPageTexts} from "./types";
 import mustache, {RenderOptions} from "mustache"
@@ -56,11 +56,10 @@ export default class AppServer {
     }
 
     private async redirectPageFor(targetUrl: string, acceptLanguageHeader: string|undefined) : Promise<string> {
-        const redirectTimeout = 50000
         const view = {
             link: targetUrl,
-            redirectTimeout: redirectTimeout,
-            redirectSeconds: redirectTimeout / 1000
+            redirectTimeout: REDIRECT_TIMEOUT,
+            redirectSeconds: REDIRECT_TIMEOUT / 1000
         }
 
         let template = this.redirectTemplateMap.get(this.preferredLanguage(acceptLanguageHeader))
@@ -118,7 +117,7 @@ export default class AppServer {
         }
 
         const replaceSecondCounterPlaceholder = (texts: RedirectPageTexts): RedirectPageTexts => {
-            const secondCounterHtml = '<span id="seconds-left">{{redirectSeconds}}</span>'
+            const secondCounterHtml = '<span id="seconds-left" class="bold">{{redirectSeconds}}</span>'
             for (const [k, v] of Object.entries(texts)) {
                 if (typeof v == "string") {
                     texts[k] = v.replace("%SECOND_COUNTER%", secondCounterHtml)

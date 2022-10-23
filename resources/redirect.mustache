@@ -18,13 +18,19 @@
             background-color: #383838;
             color: white;
             border-radius: 0;
+            border: none;
             text-decoration: none;
-            padding: .5em;
-            text-transform: capitalize;
+            padding: .7em;
+            text-transform: uppercase;
         }
 
         #cancel-button:hover {
             background-color: #565656;
+        }
+
+        #cancel-button:disabled {
+            cursor: not-allowed;
+            background-color: #9d9d9d;
         }
 
         .bold {
@@ -46,20 +52,22 @@
                 if (timeLeft >= 0) secondsLeftElement.textContent = timeLeft.toString()
             }, 1000)
 
-            document.getElementById("cancel-button").addEventListener("click", () => {
+            document.getElementById("cancel-button").addEventListener("click", (event) => {
                 clearInterval(interval)
+                event.target.disabled = true
             })
         })
     </script>
 </head>
 <body>
-    <div>
+    <div id="text-container">
         <p><%=line1=%></p>
         <p><a href="{{& link}}">{{link}}</a></p>
         <p><%=line2=%></p>
     </div>
-    <div>
-        <button type="button" id="cancel-button"><%=cancel=%></button>
+    <hr>
+    <div id="button-container">
+        <button type="button" id="cancel-button" class="bold"><%=cancel=%></button>
     </div>
 </body>
 </html>
