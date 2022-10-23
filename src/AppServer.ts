@@ -127,7 +127,9 @@ export default class AppServer {
         }
 
         for (let [lang, texts] of textMap) {
-            texts = replaceSecondCounterPlaceholder(texts)
+            texts = Object.assign({
+                lang: lang
+            }, replaceSecondCounterPlaceholder(texts))
 
             const template = mustache.render(baseTemplate, texts, null, options)
             this.redirectTemplateMap.set(lang, template)
