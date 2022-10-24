@@ -16,8 +16,19 @@ export interface OAuth2Credentials {
 }
 
 export interface RedirectPageTexts {
-    title: string,
-    line1: string,
-    line2: string,
+    title: string
+    line1: string
+    line2: string
     cancel: string
+}
+
+export interface PathConfig {
+    configPath: string
+    templatesPath: string
+}
+
+export interface RedirectPageConfig {
+    allow: boolean
+    timeout: number
+    defaultLanguage: string
 }

@@ -6,41 +6,59 @@ import url from "url"
 import GoogleSheetsConfig from "./config/GoogleSheetsConfig";
 import path from "path";
 import GoogleSheetsOAuth2Config from "./config/GoogleSheetsOAuth2Config";
-import {CONFIG_PATH, TEMPLATE_PATH, ALLOW_REDIRECT_PAGE, REDIRECT_TIMEOUT} from "./options";
 import GoogleSheetsServiceAccountConfig from "./config/GoogleSheetsServiceAccountConfig";
-import {ConfigFile, RedirectPageTexts} from "./types";
+import {ConfigFile, PathConfig, RedirectPageConfig, RedirectPageTexts} from "./types";
 import mustache, {RenderOptions} from "mustache"
 import AcceptLanguagePicker from "./AcceptLanguagePicker";
+import {setInterval} from "timers";
 
 export default class AppServer {
-    private readonly port: number;
-    private readonly updateInterval: number;
+    private readonly configPath: string
+    private readonly templatesPath: string
+    private readonly allowRedirectPage: boolean
+    private readonly redirectTimeout: number = 5000
+    private readonly defaultLanguage: string = "en"
+    private readonly redirectTemplateMap = new Map<string, string>()
+
     private server: Server;
     private repository: Repository;
     private mapping: Map<string, string>;
     private timer: NodeJS.Timer;
-    private defaultRedirectPageLanguage = AcceptLanguagePicker.DEFAULT_LANGUAGE
-    private redirectTemplateMap = new Map<string, string>()
     private acceptLanguagePicker: AcceptLanguagePicker
 
-    constructor(port: number, updateInterval: number) {
-        this.port = port;
-        this.updateInterval = updateInterval
+
+    constructor(
+        private readonly port: number,
+        private readonly updateInterval: number,
+        pathConfig: PathConfig = { configPath: "../config", templatesPath: "../resources" },
+        redirectPageConfig?: RedirectPageConfig
+    ) {
+        this.configPath = pathConfig.configPath
+        this.templatesPath = pathConfig.templatesPath
+
+        if (redirectPageConfig) {
+            this.allowRedirectPage = redirectPageConfig.allow
+            this.redirectTimeout = redirectPageConfig.timeout
+            this.defaultLanguage = redirectPageConfig.defaultLanguage
+        } else {
+            this.allowRedirectPage = false
+        }
+
+
     }
 
     public async run() : Promise<any> {
         await this.init();
-        if (ALLOW_REDIRECT_PAGE) await this.loadRedirectTemplates();
         console.info("Starting HTTP Server...");
         this.server = createServer(async (req, res) => {
             const parsedUrl = url.parse(req.url, true)
             const target = this.getTargetUrl(parsedUrl.pathname);
-            const useRedirectPage = parsedUrl.query.confirm != null && ALLOW_REDIRECT_PAGE
+            const useRedirectPage = parsedUrl.query.confirm != null && this.allowRedirectPage
 
             if (target) {
                 if (!useRedirectPage) {
                     res.writeHead(302, {
-                        //Location: target
+                        Location: target
                     })
                 } else {
                     res.writeHead(200)
@@ -58,18 +76,18 @@ export default class AppServer {
     private async redirectPageFor(targetUrl: string, acceptLanguageHeader: string|undefined) : Promise<string> {
         const view = {
             link: targetUrl,
-            redirectTimeout: REDIRECT_TIMEOUT,
-            redirectSeconds: REDIRECT_TIMEOUT / 1000
+            redirectTimeout: this.redirectTimeout,
+            redirectSeconds: this.redirectTimeout / 1000
         }
 
         let template = this.redirectTemplateMap.get(this.preferredLanguage(acceptLanguageHeader))
-        if (template == null) template = this.redirectTemplateMap.get(this.defaultRedirectPageLanguage)
+        if (template == null) template = this.redirectTemplateMap.get(this.defaultLanguage)
 
         return mustache.render(template.toString(), view)
     }
 
     private preferredLanguage(acceptLanguageHeader: string|undefined) : string {
-        return this.acceptLanguagePicker.pick(acceptLanguageHeader)
+        return this.acceptLanguagePicker?.pick(acceptLanguageHeader) || this.defaultLanguage
     }
 
     private getTargetUrl(path: string) : string|undefined {
@@ -81,7 +99,7 @@ export default class AppServer {
     private async init() {
         console.info("Setting up server...")
 
-        const config: ConfigFile = await readFile(path.join(CONFIG_PATH, 'config.json')).then(data => {
+        const config: ConfigFile = await readFile(path.join(this.configPath, 'config.json')).then(data => {
             return JSON.parse(data.toString())
         });
 
@@ -102,15 +120,15 @@ export default class AppServer {
 
         this.repository = new GoogleSheetsRepository(sheetsConfig);
         await this.startAutoUpdate();
-
+        if (this.allowRedirectPage) await this.loadRedirectTemplates();
     }
 
     private async loadRedirectTemplates() {
         console.info("Generating Mustache redirect page templates")
-        const textObject = JSON.parse((await readFile(path.join(TEMPLATE_PATH, "texts.json"))).toString())
+        const textObject = JSON.parse((await readFile(path.join(this.templatesPath, "texts.json"))).toString())
         const textMap = new Map<string, RedirectPageTexts>(Object.entries(textObject))
 
-        const baseTemplate = (await readFile(path.join(TEMPLATE_PATH, "redirect.mustache"))).toString()
+        const baseTemplate = (await readFile(path.join(this.templatesPath, "redirect.mustache"))).toString()
         const options: RenderOptions = {
             tags: ["<%=", "=%>"],
             escape: value => value
@@ -135,8 +153,8 @@ export default class AppServer {
             this.redirectTemplateMap.set(lang, template)
         }
         const keys = Array.from(this.redirectTemplateMap.keys())
-        this.acceptLanguagePicker = new AcceptLanguagePicker(keys)
-        console.info(`Generated templates for languages: ${keys.join(', ')}; with fallback "${this.defaultRedirectPageLanguage}"`)
+        this.acceptLanguagePicker = new AcceptLanguagePicker(keys, this.defaultLanguage)
+        console.info(`Generated templates for languages: ${keys.join(', ')}; with fallback "${this.defaultLanguage}"`)
 
     }
 
@@ -156,7 +174,7 @@ export default class AppServer {
 
     private stopAutoUpdate() {
         console.info(`Stopping auto update`)
-        clearTimeout(this.timer);
+        clearInterval(this.timer);
     }
 
     private async updateMapping() {
@@ -164,7 +182,7 @@ export default class AppServer {
             this.mapping = await this.repository.getMapping()
             console.info(`Updated mapping, received ${this.mapping.size} entries`)
         } else {
-            console.log('Data source not modified, skipping update')
+            console.debug('Data source not modified, skipping update')
         }
     }
 

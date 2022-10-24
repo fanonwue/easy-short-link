@@ -11,3 +11,6 @@ export const ALLOW_REDIRECT_PAGE = allowRedirectPage
 let redirectTimeout = config.redirectTimeout
 if (redirectTimeout == null) redirectTimeout = 5000
 export const REDIRECT_TIMEOUT = redirectTimeout
+
+export const PORT = parseInt(process.env.APP_PORT) || 5000;
+export const UPDATE_PERIOD = parseInt(process.env.APP_UPDATE_PERIOD) || 300; // 5 minutes default

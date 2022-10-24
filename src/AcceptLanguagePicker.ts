@@ -1,8 +1,7 @@
 export default class AcceptLanguagePicker {
-    static readonly DEFAULT_LANGUAGE = "en"
-    private regex = /((([a-zA-Z]+(-[a-zA-Z0-9]+){0,2})|\*)(;q=[0-1](\.[0-9]+)?)?)*/g
+    private readonly regex = /((([a-zA-Z]+(-[a-zA-Z0-9]+){0,2})|\*)(;q=[0-1](\.[0-9]+)?)?)*/g
 
-    constructor(private supportedLanguages: Array<string>) {}
+    constructor(private supportedLanguages: Array<string>, private readonly defaultLanguage = "en") {}
 
     parse(rawAcceptLanguage: string|undefined) : Array<AcceptLanguageParseResult> {
         if (rawAcceptLanguage === undefined) return []
@@ -33,7 +32,7 @@ export default class AcceptLanguagePicker {
         const pickedLanguage = parsed.find((parseResult) => {
             if (this.supportedLanguages.indexOf(parseResult.lang) > -1) return true
         })
-        if (!pickedLanguage) return AcceptLanguagePicker.DEFAULT_LANGUAGE
+        if (!pickedLanguage) return this.defaultLanguage
         return pickedLanguage.lang
     }
 }
