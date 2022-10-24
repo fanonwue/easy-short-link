@@ -1,0 +1,42 @@
+<!--
+ This is a mustache (https://mustache.github.io/) file
+ -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        :root {
+            --bg-color: #f0f0f0;
+            --text-color: #000;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: sans-serif;
+            padding: 1em;
+            max-width: 600px;
+            margin: auto;
+            text-align: center;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #000;
+                --text-color: #fff;
+            }
+        }
+    </style>
+    <link rel="icon" href="data:;base64,=">
+    <title>Not Found</title>
+</head>
+<body>
+    <p>No redirection target available for</p>
+    <p class="bold">{{redirectName}}</p>
+</body>
+</html>

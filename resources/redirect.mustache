@@ -4,8 +4,22 @@
 <!DOCTYPE html>
 <html lang="<%=lang=%>">
 <head>
+    <meta charset="UTF-8">
     <style>
+        :root {
+            --bg-color: #f0f0f0;
+            --text-color: #000;
+            --cancel-btn-text: var(--text-color);
+            --cancel-btn-bg: #383838;
+            --cancel-btn-bg-hover: #565656;
+            --cancel-btn-bg-disabled: #9d9d9d;
+            --link-color: var(--text-color);
+            --link-color-hover: #444444;
+        }
+
         body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
             font-family: sans-serif;
             padding: 1em;
             max-width: 600px;
@@ -13,10 +27,10 @@
         }
 
         #cancel-button {
+            background-color: var(--cancel-btn-bg);
+            color: var(--cancel-btn-text);
             width: 100%;
             margin: auto;
-            background-color: #383838;
-            color: white;
             border-radius: 0;
             border: none;
             text-decoration: none;
@@ -25,19 +39,39 @@
         }
 
         #cancel-button:hover {
-            background-color: #565656;
+            background-color: var(--cancel-btn-bg-hover);
+            cursor: not-allowed;
         }
 
         #cancel-button:disabled {
+            background-color: var(--cancel-btn-bg-disabled);
             cursor: not-allowed;
-            background-color: #9d9d9d;
         }
 
         .bold {
             font-weight: bold;
         }
+
+        a:link, a:visited {
+            color: var(--link-color)
+        }
+
+        a:hover, a:active {
+            color: var(--link-color-hover)
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #000;
+                --text-color: #fff;
+                --cancel-btn-bg: #383838;
+                --cancel-btn-bg-hover: #565656;
+                --cancel-btn-bg-disabled: #262626;
+                --link-color-hover: #c7c7c7;
+            }
+        }
     </style>
-    <meta charset="UTF-8">
+    <link rel="icon" href="data:;base64,=">
     <title><%=title=%></title>
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', () => {

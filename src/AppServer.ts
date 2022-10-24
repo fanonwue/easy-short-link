@@ -1,4 +1,4 @@
-import {Server, createServer} from "http";
+import {Server, createServer, ServerResponse} from "http";
 import Repository from "./repository/Repository";
 import GoogleSheetsRepository from "./repository/GoogleSheetsRepository";
 import {readFile} from "fs/promises";
@@ -10,7 +10,6 @@ import GoogleSheetsServiceAccountConfig from "./config/GoogleSheetsServiceAccoun
 import {ConfigFile, PathConfig, RedirectPageConfig, RedirectPageTexts} from "./types";
 import mustache, {RenderOptions} from "mustache"
 import AcceptLanguagePicker from "./AcceptLanguagePicker";
-import {setInterval} from "timers";
 
 export default class AppServer {
     private readonly configPath: string
@@ -25,7 +24,7 @@ export default class AppServer {
     private mapping: Map<string, string>;
     private timer: NodeJS.Timer;
     private acceptLanguagePicker: AcceptLanguagePicker
-
+    private notFoundTemplate: string|undefined
 
     constructor(
         private readonly port: number,
@@ -52,7 +51,8 @@ export default class AppServer {
         console.info("Starting HTTP Server...");
         this.server = createServer(async (req, res) => {
             const parsedUrl = url.parse(req.url, true)
-            const target = this.getTargetUrl(parsedUrl.pathname);
+            const redirectName = parsedUrl.pathname
+            const target = this.getTargetUrl(redirectName);
             const useRedirectPage = parsedUrl.query.confirm != null && this.allowRedirectPage
 
             if (target) {
@@ -61,16 +61,40 @@ export default class AppServer {
                         Location: target
                     })
                 } else {
-                    res.writeHead(200)
-                    res.write(await this.redirectPageFor(target, req.headers["accept-language"]))
+                    this.writeHtmlResponse(
+                        res,
+                        200,
+                        await this.redirectPageFor(target, req.headers["accept-language"])
+                    )
                 }
             } else {
-                res.statusCode = 404;
-                res.write("Not found.")
+                this.writeHtmlResponse(res, 404, await this.notFoundPageFor(redirectName))
             }
             res.end();
         }).listen(this.port);
         console.info(`HTTP Server listening on port ${this.port}`);
+    }
+
+    private writeHtmlResponse(res: ServerResponse, responseCode: number, responseBody: string|Buffer) {
+        const charset = "utf-8"
+        let buffer: Buffer
+        if (typeof responseBody == "string") {
+            buffer = Buffer.from(responseBody, charset)
+        } else {
+            buffer = responseBody
+        }
+
+        res.writeHead(responseCode, {
+            "Content-Type": `text/html; charset=${charset}`,
+            "Content-Length": buffer.length
+        })
+        res.write(buffer)
+    }
+
+    private async notFoundPageFor(redirectName: string) {
+        return mustache.render(this.notFoundTemplate, {
+            redirectName: redirectName
+        })
     }
 
     private async redirectPageFor(targetUrl: string, acceptLanguageHeader: string|undefined) : Promise<string> {
@@ -99,6 +123,10 @@ export default class AppServer {
     private async init() {
         console.info("Setting up server...")
 
+        // Prepare templates for HTML responses
+        const promises: Array<Promise<any>> = [this.loadNotFoundTemplate()]
+        if (this.allowRedirectPage) promises.push(this.loadRedirectTemplates())
+
         const config: ConfigFile = await readFile(path.join(this.configPath, 'config.json')).then(data => {
             return JSON.parse(data.toString())
         });
@@ -119,8 +147,20 @@ export default class AppServer {
         sheetsConfig.skipFirstRow = config.skipFirstRow !== undefined ? config.skipFirstRow : false;
 
         this.repository = new GoogleSheetsRepository(sheetsConfig);
-        await this.startAutoUpdate();
-        if (this.allowRedirectPage) await this.loadRedirectTemplates();
+
+        promises.push(this.startAutoUpdate())
+
+        await Promise.all(promises)
+    }
+
+    private async loadNotFoundTemplate() {
+        console.info("Reading template for Not Found Page")
+        try {
+            const filePath = path.join(this.templatesPath, "not-found.mustache")
+            this.notFoundTemplate = (await readFile(filePath)).toString()
+        } catch {
+            this.notFoundTemplate = "Not Found."
+        }
     }
 
     private async loadRedirectTemplates() {
