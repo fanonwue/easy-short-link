@@ -53,7 +53,7 @@ export default class AppServer {
             const parsedUrl = url.parse(req.url, true)
             const redirectName = parsedUrl.pathname
             const target = this.getTargetUrl(redirectName);
-            const useRedirectPage = parsedUrl.query.confirm != null && this.allowRedirectPage
+            const useRedirectPage = this.allowRedirectPage && parsedUrl.query.confirm != null
 
             if (target) {
                 if (!useRedirectPage) {
