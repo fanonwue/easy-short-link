@@ -1,6 +1,4 @@
-<!--
- This is a mustache (https://mustache.github.io/) file
- -->
+<!-- cache-not-found -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,9 +14,15 @@
             color: var(--text-color);
             font-family: sans-serif;
             padding: 1em;
-            max-width: 600px;
+            width: 85%;
+            min-width: 8em;
+            max-width: 60em;
             margin: auto;
             text-align: center;
+        }
+
+        #link {
+            overflow-wrap: break-word;
         }
 
         .bold {
@@ -33,10 +37,11 @@
         }
     </style>
     <link rel="icon" href="data:;base64,=">
-    <title>Not Found</title>
+    <title>Not Found - No redirect available</title>
 </head>
 <body>
-    <p>No redirection target available for</p>
-    <p class="bold">{{redirectName}}</p>
+    <p>404 Not Found - No redirection target available for</p>
+    <p class="bold" id="link">{{redirectName}}</p>
+    <p>Looks like someone may have sent you the wrong link or you mistyped somewhere!</p>
 </body>
 </html>

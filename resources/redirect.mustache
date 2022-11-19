@@ -1,6 +1,4 @@
-<!--
- This is a mustache (https://mustache.github.io/) file
- -->
+<!-- cache-<%=lang=%> -->
 <!DOCTYPE html>
 <html lang="<%=lang=%>">
 <head>
@@ -22,8 +20,11 @@
             color: var(--text-color);
             font-family: sans-serif;
             padding: 1em;
-            max-width: 600px;
+            width: 85%;
+            min-width: 8em;
+            max-width: 60em;
             margin: auto;
+            text-align: center;
         }
 
         #cancel-button {
@@ -45,6 +46,10 @@
         #cancel-button:disabled {
             background-color: var(--cancel-btn-bg-disabled);
             cursor: not-allowed;
+        }
+
+        #link {
+            overflow-wrap: break-word;
         }
 
         .bold {
@@ -95,7 +100,7 @@
 <body>
     <div id="text-container">
         <p><%=line1=%></p>
-        <p><a href="{{& link}}">{{link}}</a></p>
+        <p class="bold" id="link"><a href="{{& link}}">{{link}}</a></p>
         <p><%=line2=%></p>
     </div>
     <hr>

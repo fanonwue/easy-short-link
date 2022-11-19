@@ -156,6 +156,7 @@ export default class AppServer {
     }
 
     private async addDefaultUpdateHooks() {
+        console.info("Creating default update hooks...")
         const forEachInUpdateMap = (map: Map<string, string>, fn: (redirectPath, targetUrl) => [string, string]) => {
             const newMap = new Map<string, string>()
             map.forEach((targetUrl, redirectPath) => {
@@ -165,7 +166,7 @@ export default class AppServer {
             return newMap;
         }
 
-        console.debug("Adding update hook to strip trailing slashes")
+        console.debug("Adding update hook to strip leading and trailing slashes")
         this.registerUpdateHook(<RegisteredHook<Map<string, string>>>{
             name: "strip-slashes",
             order: 1000,
@@ -196,6 +197,8 @@ export default class AppServer {
         } catch {
             this.notFoundTemplate = "Not Found."
         }
+        // Pre-parse template into template cache
+        mustache.parse(this.notFoundTemplate)
     }
 
     private async loadRedirectTemplates() {
@@ -226,6 +229,8 @@ export default class AppServer {
 
             const template = mustache.render(baseTemplate, texts, null, options)
             this.redirectTemplateMap.set(lang, template)
+            // Pre-parse template into template cache
+            mustache.parse(template)
         }
         const keys = Array.from(this.redirectTemplateMap.keys())
         this.acceptLanguagePicker = new AcceptLanguagePicker(keys, this.defaultLanguage)
