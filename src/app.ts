@@ -5,7 +5,8 @@ import {
     PORT,
     REDIRECT_TIMEOUT,
     TEMPLATE_PATH,
-    UPDATE_PERIOD
+    UPDATE_PERIOD,
+    IGNORE_CASE_IN_PATH,
 } from "./options";
 
 // change console logging
@@ -19,7 +20,12 @@ const appServer = new AppServer(
     PORT,
     UPDATE_PERIOD,
     { configPath: CONFIG_PATH, templatesPath: TEMPLATE_PATH },
-    { allow: ALLOW_REDIRECT_PAGE, timeout: REDIRECT_TIMEOUT, defaultLanguage: "en" }
+    {
+        ignoreCaseInPath: IGNORE_CASE_IN_PATH,
+        allowRedirectPage: ALLOW_REDIRECT_PAGE,
+        redirectTimeout: REDIRECT_TIMEOUT,
+        defaultLanguage: "en"
+    }
 );
 appServer.run().then(() => {
     console.info("Server started")

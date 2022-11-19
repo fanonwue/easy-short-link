@@ -27,8 +27,15 @@ export interface PathConfig {
     templatesPath: string
 }
 
-export interface RedirectPageConfig {
-    allow: boolean
-    timeout: number
-    defaultLanguage: string
+export interface RedirectConfig {
+    ignoreCaseInPath: boolean|undefined
+    allowRedirectPage: boolean|undefined
+    redirectTimeout: number|undefined
+    defaultLanguage: string|undefined
+}
+
+export interface RegisteredHook<T> {
+    name: string,
+    order: number,
+    fn: (subject: T) => T
 }

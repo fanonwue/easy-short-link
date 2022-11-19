@@ -7,17 +7,18 @@ import GoogleSheetsConfig from "./config/GoogleSheetsConfig";
 import path from "path";
 import GoogleSheetsOAuth2Config from "./config/GoogleSheetsOAuth2Config";
 import GoogleSheetsServiceAccountConfig from "./config/GoogleSheetsServiceAccountConfig";
-import {ConfigFile, PathConfig, RedirectPageConfig, RedirectPageTexts} from "./types";
+import {ConfigFile, PathConfig, RedirectConfig, RedirectPageTexts, RegisteredHook} from "./types";
 import mustache, {RenderOptions} from "mustache"
 import AcceptLanguagePicker from "./AcceptLanguagePicker";
 
 export default class AppServer {
     private readonly configPath: string
     private readonly templatesPath: string
-    private readonly allowRedirectPage: boolean
+    private readonly allowRedirectPage: boolean = false
     private readonly redirectTimeout: number = 5000
     private readonly defaultLanguage: string = "en"
     private readonly redirectTemplateMap = new Map<string, string>()
+    private readonly ignoreCaseInPath: boolean = true
 
     private server: Server;
     private repository: Repository;
@@ -25,34 +26,31 @@ export default class AppServer {
     private timer: NodeJS.Timer;
     private acceptLanguagePicker: AcceptLanguagePicker
     private notFoundTemplate: string|undefined
+    private updateHooks = new Map<string, RegisteredHook<any>>()
 
     constructor(
         private readonly port: number,
         private readonly updateInterval: number,
         pathConfig: PathConfig = { configPath: "../config", templatesPath: "../resources" },
-        redirectPageConfig?: RedirectPageConfig
+        redirectConfig?: RedirectConfig
     ) {
-        this.configPath = pathConfig.configPath
-        this.templatesPath = pathConfig.templatesPath
+        this.configPath         = pathConfig.configPath
+        this.templatesPath      = pathConfig.templatesPath
 
-        if (redirectPageConfig) {
-            this.allowRedirectPage = redirectPageConfig.allow
-            this.redirectTimeout = redirectPageConfig.timeout
-            this.defaultLanguage = redirectPageConfig.defaultLanguage
-        } else {
-            this.allowRedirectPage = false
-        }
-
-
+        this.ignoreCaseInPath   = redirectConfig?.ignoreCaseInPath ?? true
+        this.allowRedirectPage  = redirectConfig?.allowRedirectPage ?? false
+        this.redirectTimeout    = redirectConfig?.redirectTimeout ?? 0
+        this.defaultLanguage    = redirectConfig?.defaultLanguage ?? "en"
     }
 
     public async run() : Promise<any> {
         await this.init();
+        await this.startAutoUpdate()
         console.info("Starting HTTP Server...");
         this.server = createServer(async (req, res) => {
             const parsedUrl = url.parse(req.url, true)
             const redirectName = parsedUrl.pathname
-            const target = this.getTargetUrl(redirectName);
+            const target = this.targetUrlFor(redirectName)
             const useRedirectPage = this.allowRedirectPage && parsedUrl.query.confirm != null
 
             if (target) {
@@ -114,8 +112,11 @@ export default class AppServer {
         return this.acceptLanguagePicker?.pick(acceptLanguageHeader) || this.defaultLanguage
     }
 
-    private getTargetUrl(path: string) : string|undefined {
-        if (path[0] === '/') path = path.substring(1);
+    private targetUrlFor(path: string) : string|undefined {
+        path = this.removeTrailingSlashes(
+            this.removeLeadingSlashes(path)
+        )
+        if (this.ignoreCaseInPath) path = path.toLowerCase()
         return this.mapping.get(path);
     }
 
@@ -148,9 +149,43 @@ export default class AppServer {
 
         this.repository = new GoogleSheetsRepository(sheetsConfig);
 
-        promises.push(this.startAutoUpdate())
+        promises.push(this.addDefaultUpdateHooks())
 
+        // Wait for all pending init steps to finish
         await Promise.all(promises)
+    }
+
+    private async addDefaultUpdateHooks() {
+        const forEachInUpdateMap = (map: Map<string, string>, fn: (redirectPath, targetUrl) => [string, string]) => {
+            const newMap = new Map<string, string>()
+            map.forEach((targetUrl, redirectPath) => {
+                const [newRedirectPath, newTargetUrl] = fn(redirectPath, targetUrl)
+                newMap.set(newRedirectPath, newTargetUrl)
+            })
+            return newMap;
+        }
+
+        console.debug("Adding update hook to strip trailing slashes")
+        this.registerUpdateHook(<RegisteredHook<Map<string, string>>>{
+            name: "strip-slashes",
+            order: 1000,
+            fn: subject => forEachInUpdateMap(subject, (redirectPath, targetUrl) => {
+                redirectPath = this.removeLeadingSlashes(redirectPath)
+                redirectPath = this.removeTrailingSlashes(redirectPath)
+                return [redirectPath, targetUrl]
+            })
+        })
+
+        if (this.ignoreCaseInPath) {
+            console.debug("Adding update hook to make redirect paths lowercase")
+            this.registerUpdateHook(<RegisteredHook<Map<string, string>>>{
+                name: "make-lowercase",
+                order: 1,
+                fn: subject => forEachInUpdateMap(subject, (redirectPath, targetUrl) => {
+                    return [redirectPath.toLowerCase(), targetUrl]
+                })
+            })
+        }
     }
 
     private async loadNotFoundTemplate() {
@@ -217,9 +252,42 @@ export default class AppServer {
         clearInterval(this.timer);
     }
 
+    private removeLeadingSlashes(str: string) {
+        while (str.startsWith('/')) {
+            str = str.slice(1)
+        }
+        return str
+    }
+
+    private removeTrailingSlashes(str: string) {
+        while (str.endsWith('/')) {
+            str = str.slice(0, -1)
+        }
+        return str;
+    }
+
+    public registerUpdateHook(hook: RegisteredHook<any>) {
+        this.updateHooks.set(hook.name, hook)
+    }
+
+    public removeUpdateHook(name: string) {
+        this.updateHooks.delete(name)
+    }
+
     private async updateMapping() {
         if (await this.repository.needsUpdate()) {
-            this.mapping = await this.repository.getMapping()
+            let newMapping = await this.repository.getMapping()
+
+            // Execute update hooks in the correct order, if any are present
+            if (this.updateHooks.size > 0) {
+                Array.from(this.updateHooks.values()).sort((a, b) => {
+                    return a.order - b.order
+                }).forEach((hook) => {
+                    newMapping = hook.fn(newMapping)
+                })
+            }
+
+            this.mapping = newMapping
             console.info(`Updated mapping, received ${this.mapping.size} entries`)
         } else {
             console.debug('Data source not modified, skipping update')
