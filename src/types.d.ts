@@ -1,18 +1,35 @@
-type authenticationType = 'oauth2'|'service';
+type AuthenticationType = 'oauth2'|'service';
 
 export interface ConfigFile {
-    authentication: authenticationType
+    authenticationType: AuthenticationType
     spreadsheetId: string
     skipFirstRow: boolean|undefined
+    redirect: RedirectConfig
+}
+
+export interface AppConfig extends ConfigFile {
+    paths: PathConfig,
+    serviceAccountCredentials?: ServiceAccountCredentials
+    serviceAccountKeyFile?: string
+    port: number
+    updatePeriod: number
+}
+
+export interface ServiceAccountCredentials {
+    projectId: string,
+    privateKey: string,
+    privateKeyId?: string,
+    clientId: string,
+    clientEmail: string
 }
 
 export interface OAuth2Credentials {
     clientSecret: string
     clientId: string
-    redirectUrl: string|undefined
-    accessToken: string|undefined
-    refreshToken: string|undefined
-    authorizationCode: string|undefined
+    redirectUrl?: string
+    accessToken?: string
+    refreshToken?: string
+    authorizationCode?: string
 }
 
 export interface RedirectPageTexts {
@@ -28,10 +45,10 @@ export interface PathConfig {
 }
 
 export interface RedirectConfig {
-    ignoreCaseInPath: boolean|undefined
-    allowRedirectPage: boolean|undefined
-    redirectTimeout: number|undefined
-    defaultLanguage: string|undefined
+    ignoreCaseInPath?: boolean
+    allowRedirectPage?: boolean
+    redirectTimeout?: number
+    defaultLanguage?: string
 }
 
 export interface RegisteredHook<T> {

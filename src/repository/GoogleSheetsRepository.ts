@@ -99,10 +99,22 @@ export default class GoogleSheetsRepository implements Repository {
     }
 
     private createServiceUserAuth(config: GoogleSheetsServiceAccountConfig) {
-        return new google.auth.GoogleAuth({
-            keyFile: config.keyFile,
-            scopes: config.getScopes()
-        })
+        if (config.shouldUseCredentials) {
+            return new google.auth.GoogleAuth({
+                projectId: config.projectId,
+                credentials: {
+                    type: config.credentialsType,
+                    private_key: config.privateKey,
+                    client_email: config.clientEmail
+                },
+                scopes: config.getScopes()
+            })
+        } else {
+            return new google.auth.GoogleAuth({
+                keyFile: config.keyFile,
+                scopes: config.getScopes()
+            })
+        }
 
     }
 

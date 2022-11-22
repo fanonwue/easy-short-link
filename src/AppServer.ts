@@ -1,24 +1,30 @@
 import {Server, createServer, ServerResponse} from "http";
 import Repository from "./repository/Repository";
 import GoogleSheetsRepository from "./repository/GoogleSheetsRepository";
-import {readFile} from "fs/promises";
+import {readFile, access} from "fs/promises";
 import url from "url"
 import GoogleSheetsConfig from "./config/GoogleSheetsConfig";
 import path from "path";
 import GoogleSheetsOAuth2Config from "./config/GoogleSheetsOAuth2Config";
 import GoogleSheetsServiceAccountConfig from "./config/GoogleSheetsServiceAccountConfig";
-import {ConfigFile, PathConfig, RedirectConfig, RedirectPageTexts, RegisteredHook} from "./types";
+import {AppConfig, RedirectPageTexts, RegisteredHook} from "./types";
 import mustache, {RenderOptions} from "mustache"
 import AcceptLanguagePicker from "./AcceptLanguagePicker";
 
 export default class AppServer {
-    private readonly configPath: string
-    private readonly templatesPath: string
-    private readonly allowRedirectPage: boolean = false
-    private readonly redirectTimeout: number = 5000
-    private readonly defaultLanguage: string = "en"
+    private get configPath() { return this.config.paths.configPath }
+    private get templatesPath() { return this.config.paths.templatesPath }
+    private get allowRedirectPage() { return this.config.redirect.allowRedirectPage ?? false }
+    private get redirectTimeout() { return this.config.redirect.redirectTimeout ?? 0 }
+    private get defaultLanguage() { return this.config.redirect.defaultLanguage ?? "en" }
+    private get ignoreCaseInPath() { return this.config.redirect.ignoreCaseInPath ?? true }
+
+    private get port() { return this.config.port }
+    private get updateInterval() { return this.config.updatePeriod }
+
     private readonly redirectTemplateMap = new Map<string, string>()
-    private readonly ignoreCaseInPath: boolean = true
+
+    private readonly config: AppConfig
 
     private server: Server;
     private repository: Repository;
@@ -29,18 +35,9 @@ export default class AppServer {
     private updateHooks = new Map<string, RegisteredHook<any>>()
 
     constructor(
-        private readonly port: number,
-        private readonly updateInterval: number,
-        pathConfig: PathConfig = { configPath: "../config", templatesPath: "../resources" },
-        redirectConfig?: RedirectConfig
+        config: AppConfig
     ) {
-        this.configPath         = pathConfig.configPath
-        this.templatesPath      = pathConfig.templatesPath
-
-        this.ignoreCaseInPath   = redirectConfig?.ignoreCaseInPath ?? true
-        this.allowRedirectPage  = redirectConfig?.allowRedirectPage ?? false
-        this.redirectTimeout    = redirectConfig?.redirectTimeout ?? 0
-        this.defaultLanguage    = redirectConfig?.defaultLanguage ?? "en"
+        this.config = config
     }
 
     public async run() : Promise<any> {
@@ -128,24 +125,24 @@ export default class AppServer {
         const promises: Array<Promise<any>> = [this.loadNotFoundTemplate()]
         if (this.allowRedirectPage) promises.push(this.loadRedirectTemplates())
 
-        const config: ConfigFile = await readFile(path.join(this.configPath, 'config.json')).then(data => {
-            return JSON.parse(data.toString())
-        });
 
         let sheetsConfig: GoogleSheetsConfig;
 
-        switch (config.authentication) {
+        switch (this.config.authenticationType) {
             case 'oauth2':
                 sheetsConfig = await GoogleSheetsOAuth2Config.fromFile();
                 break;
             case 'service':
             default:
-                sheetsConfig = new GoogleSheetsServiceAccountConfig();
+                sheetsConfig = new GoogleSheetsServiceAccountConfig({
+                    keyFile: this.config.serviceAccountKeyFile,
+                    credentials: this.config.serviceAccountCredentials
+                });
                 break;
         }
 
-        sheetsConfig.sheetId = config.spreadsheetId;
-        sheetsConfig.skipFirstRow = config.skipFirstRow !== undefined ? config.skipFirstRow : false;
+        sheetsConfig.sheetId = this.config.spreadsheetId;
+        sheetsConfig.skipFirstRow = this.config.skipFirstRow ?? true
 
         this.repository = new GoogleSheetsRepository(sheetsConfig);
 
