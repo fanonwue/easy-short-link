@@ -47,7 +47,7 @@ export default class AppServer {
         this.server = createServer(async (req, res) => {
             const parsedUrl = url.parse(req.url, true)
             const redirectName = parsedUrl.pathname
-            const target = this.targetUrlFor(redirectName)
+            const target = this.targetUrlFor(redirectName, req.headers.host)
             const useRedirectPage = this.allowRedirectPage && parsedUrl.query.confirm != null
 
             if (target) {
@@ -109,11 +109,12 @@ export default class AppServer {
         return this.acceptLanguagePicker?.pick(acceptLanguageHeader) || this.defaultLanguage
     }
 
-    private targetUrlFor(path: string) : string|undefined {
+    private targetUrlFor(path: string, hostname?: string) : string|undefined {
         path = this.removeTrailingSlashes(
             this.removeLeadingSlashes(path)
         )
         if (this.ignoreCaseInPath) path = path.toLowerCase()
+        if (path.length == 0 && hostname && this.mapping.has(hostname)) return this.mapping.get(hostname)
         return this.mapping.get(path);
     }
 
