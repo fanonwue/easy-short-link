@@ -22,7 +22,7 @@
   },
   "license": "BSD-3-Clause",
   "devDependencies": {
-    "@types/gapi": "0.0.42",
+    "@types/gapi": "0.0.44",
     "@types/mustache": "^4.2.1",
     "@types/node": "^18.7.18",
     "@typescript-eslint/eslint-plugin": "^5.40.1",
