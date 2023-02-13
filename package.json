@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "console-stamp": "^3.0.6",
-    "googleapis": "^107.0.0",
+    "googleapis": "^111.0.0",
     "googleapis-common": "^6.0.3",
     "mustache": "^4.2.0"
   }
