@@ -120,13 +120,13 @@ export default class GoogleSheetsRepository implements Repository {
 
     async getModifiedTime() : Promise<Date|undefined> {
         const drive = google.drive({version: "v3", auth: await this.getAuth()})
-        return drive.files.get({
-            fileId: this.config.sheetId,
-            fields: 'modifiedTime'
-        }).then(res => {
-            const time = res.data.modifiedTime;
-            return new Date(time);
-        }).catch(err => {
+        try {
+            const res = await drive.files.get({
+                fileId: this.config.sheetId,
+                fields: 'modifiedTime'
+            })
+            return new Date(res.data.modifiedTime)
+        } catch (err: any) {
             const errorObject = err.response ? err.response.data.error : null;
             if (errorObject && errorObject.code === 403 && this.isAccessNotConfiguredError(errorObject.errors)) {
                 console.warn("Google Drive API has not been added to the project, skipping modification checks");
@@ -136,7 +136,7 @@ export default class GoogleSheetsRepository implements Repository {
 
             console.error(`Could not retrieve file metadata for file ${this.config.sheetId}`, err);
             return err;
-        })
+        }
     }
 
     private async isAccessNotConfiguredError(errors: Array<any>) {
