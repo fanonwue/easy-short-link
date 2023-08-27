@@ -25,15 +25,15 @@
     "@types/gapi": "0.0.44",
     "@types/mustache": "^4.2.2",
     "@types/node": "^18.14.2",
-    "@typescript-eslint/eslint-plugin": "^5.53.0",
-    "@typescript-eslint/parser": "^5.53.0",
+    "@typescript-eslint/eslint-plugin": "^6.4.1",
+    "@typescript-eslint/parser": "^6.4.1",
     "eslint": "^8.35.0",
-    "typescript": "^4.9.5"
+    "typescript": "^5.2.2"
   },
   "dependencies": {
     "console-stamp": "^3.1.1",
-    "googleapis": "^111.0.0",
-    "googleapis-common": "^6.0.4",
+    "googleapis": "^126.0.1",
+    "googleapis-common": "^7.0.0",
     "mustache": "^4.2.0"
   }
 }
