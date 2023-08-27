@@ -25,11 +25,12 @@ export default class AppServer {
     private readonly redirectTemplateMap = new Map<string, string>()
 
     private readonly config: AppConfig
+    private readonly cacheControl: string
 
-    private server: Server;
-    private repository: Repository;
-    private mapping: Map<string, string>;
-    private timer: NodeJS.Timer;
+    private server: Server
+    private repository: Repository
+    private mapping: Map<string, string>
+    private timer: NodeJS.Timer
     private acceptLanguagePicker: AcceptLanguagePicker
     private notFoundTemplate: string|undefined
     private updateHooks = new Map<string, RegisteredHook<any>>()
@@ -38,6 +39,7 @@ export default class AppServer {
         config: AppConfig
     ) {
         this.config = config
+        this.cacheControl = `max-age=${config.httpCacheMaxAge}`
     }
 
     public async run() : Promise<any> {
@@ -54,6 +56,7 @@ export default class AppServer {
                 if (!useRedirectPage) {
                     res.writeHead(307, {
                         Location: target,
+                        "Cache-Control": this.cacheControl,
                         "X-Robots-Tag": "nofollow"
                     })
                 } else {
@@ -82,7 +85,8 @@ export default class AppServer {
 
         res.writeHead(responseCode, {
             "Content-Type": `text/html; charset=${charset}`,
-            "Content-Length": buffer.length
+            "Content-Length": buffer.length,
+            "Cache-Control": this.cacheControl
         })
         res.write(buffer)
     }

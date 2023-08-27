@@ -49,6 +49,8 @@ if (existsSync(configFilePath)) {
     configFile = JSON.parse((readFileSync(configFilePath)).toString())
 }
 
+const updatePeriod = toInt(process.env.UPDATE_PERIOD) ?? 300
+
 const config: AppConfig = {
     paths: pathConfig,
     spreadsheetId: configFile?.spreadsheetId ?? process.env.SPREADSHEET_ID ?? "",
@@ -61,7 +63,8 @@ const config: AppConfig = {
         defaultLanguage: process.env.DEFAULT_LANGUAGE ?? "en"
     },
     port: toInt(process.env.APP_PORT) ?? 3000,
-    updatePeriod: toInt(process.env.UPDATE_PERIOD) ?? 300, // 5 minutes default
+    updatePeriod: updatePeriod, // 5 minutes default
+    httpCacheMaxAge: toInt(process.env.HTTP_CACHE_MAX_AGE) ?? updatePeriod, // use updatePeriod as default,
     serviceAccountKeyFile: process.env.SERVICE_ACCOUNT_KEY_FILE,
 }
 
