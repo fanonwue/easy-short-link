@@ -52,8 +52,9 @@ export default class AppServer {
 
             if (target) {
                 if (!useRedirectPage) {
-                    res.writeHead(302, {
-                        Location: target
+                    res.writeHead(307, {
+                        Location: target,
+                        "X-Robots-Tag": "nofollow"
                     })
                 } else {
                     this.writeHtmlResponse(
