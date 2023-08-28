@@ -1,7 +1,8 @@
 import {Server, createServer, ServerResponse} from "http";
+import {setInterval} from "timers/promises";
 import Repository from "./repository/Repository";
 import GoogleSheetsRepository from "./repository/GoogleSheetsRepository";
-import {readFile, access} from "fs/promises";
+import {readFile} from "fs/promises";
 import url from "url"
 import GoogleSheetsConfig from "./config/GoogleSheetsConfig";
 import path from "path";
@@ -29,8 +30,8 @@ export default class AppServer {
 
     private server: Server
     private repository: Repository
+    private updateAbortController = new AbortController()
     private mapping: Map<string, string>
-    private timer: NodeJS.Timer
     private acceptLanguagePicker: AcceptLanguagePicker
     private notFoundTemplate: string|undefined
     private updateHooks = new Map<string, RegisteredHook<any>>()
@@ -242,22 +243,34 @@ export default class AppServer {
     }
 
     /**
-     *
      * @private
-     * @return Promise<any> which resolves once the initial update has been completed
+     * @return Promise<void> which resolves once the initial update has been completed
      */
-    private async startAutoUpdate() : Promise<void> {
+    private startAutoUpdate() : Promise<void> {
+        const initialLoadPromise = this.updateMapping()
+        // Schedule auto update loop to start executing after initial load
+        initialLoadPromise.then(() => this.autoUpdateLoop())
+        // Return initial load's promise to indicate when the mapping is ready
+        return initialLoadPromise
+    }
+
+    /**
+     * Starts an async loop using the promisified version of setInterval from "timers/promises"
+     * The promise this async function produces will only fulfill once the interval gets aborted,
+     * thus it's a separate function from startAutoUpdate()
+     * @private
+     */
+    private async autoUpdateLoop() : Promise<void> {
         console.info(`Starting auto update at an interval of ${this.updateInterval} seconds`)
-        const promise = this.updateMapping();
-        this.timer = setInterval(async () => {
-            await this.updateMapping();
-        }, this.updateInterval * 1000)
-        return promise;
+        this.updateAbortController = new AbortController()
+        for await (const _ of setInterval(this.updateInterval * 1000, undefined, { signal: this.updateAbortController.signal })) {
+            await this.updateMapping()
+        }
     }
 
     private stopAutoUpdate() {
         console.info(`Stopping auto update`)
-        clearInterval(this.timer);
+        this.updateAbortController.abort("cancelled by stopAutoUpdate()")
     }
 
     private removeLeadingSlashes(str: string) {
