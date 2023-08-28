@@ -33,7 +33,13 @@ const toObject = (value: string) => {
 }
 
 const toAuthenticationType = (value: string): AuthenticationType => {
-    return <"oauth2" | "service">value ?? undefined
+    switch (value) {
+        case "oauth2":
+        case "service":
+            return value
+        default:
+            return undefined
+    }
 }
 
 let pathConfig: PathConfig = {
