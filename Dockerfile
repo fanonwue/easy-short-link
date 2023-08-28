@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM node:lts-alpine AS builder
+FROM node:20-alpine AS builder
 ENV NODE_ENV dev
 WORKDIR /var/app
 COPY ["./package.json", "./package-lock.json", "./tsconfig.json", "./"]
@@ -11,7 +11,7 @@ RUN npm prune --production
 
 
 
-FROM node:lts-alpine
+FROM node:20-alpine
 ENV NODE_ENV production
 WORKDIR /var/app
 COPY --from=builder /var/app/package.json .
