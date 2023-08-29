@@ -185,26 +185,24 @@ export default class GoogleSheetsRepository implements Repository {
                 spreadsheetId: this.config.sheetId,
                 range: this.getRange()
             }, ((err, res) => {
-                const rows = res.data.values;
-
+                const rows = res.data.values
                 if (rows.length) {
-                    const map = new Map<string, string>();
-                    rows.map(row => {
-                        const alias = row[0];
-                        const target = row[1];
+                    const map = new Map<string, string>()
 
-                        // Skip if alias or target is empty
-                        if (!alias || !target) return
+                    for (const [alias, target] of rows) {
+                        if (alias && target) {
+                            map.set(alias, target)
+                        }
+                    }
 
-                        map.set(alias, target)
-                    })
-                    this.lastUpdate = new Date();
-                    resolve(map);
+                    resolve(map)
+
+                    // Remember this run
+                    this.lastUpdate = new Date()
                 } else {
                     console.warn("No data found in spreadsheet")
-                    reject();
+                    reject()
                 }
-
             }))
         })
     }
