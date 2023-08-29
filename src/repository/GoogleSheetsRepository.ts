@@ -1,5 +1,5 @@
 import Repository from "./Repository";
-import {google} from 'googleapis';
+import {drive_v3, google} from 'googleapis';
 import {exit} from "process";
 import GoogleSheetsConfig from "../config/GoogleSheetsConfig";
 import GoogleSheetsOAuth2Config from "../config/GoogleSheetsOAuth2Config";
@@ -20,28 +20,29 @@ export default class GoogleSheetsRepository implements Repository {
     }
 
     private async createOAuth2Client(config: GoogleSheetsOAuth2Config) : Promise<OAuth2Client> {
-        const client = new google.auth.OAuth2(
-            config.clientId, config.clientSecret, config.redirectUrl
-        );
-        client.on('tokens', async (tokens) => {
-            config.accessToken = tokens.access_token;
-            if (tokens.refresh_token) {
-                console.log('Received new refresh token, saving to credentials file')
-                config.refreshToken = tokens.refresh_token;
-                await config.saveToFile();
-            }
-        });
-
-        if (!config.canAuthorize()) {
-            await this.getOAuth2Credentials(client, config)
-        }
-
-        return client;
+        throw Error('NOT YET IMPLEMENTED')
+        // const client = new google.auth.OAuth2(
+        //     config.clientId, config.clientSecret, config.redirectUrl
+        // );
+        // client.on('tokens', async (tokens) => {
+        //     config.accessToken = tokens.access_token;
+        //     if (tokens.refresh_token) {
+        //         console.log('Received new refresh token, saving to credentials file')
+        //         config.refreshToken = tokens.refresh_token;
+        //         await config.saveToFile();
+        //     }
+        // });
+        //
+        // if (!config.canAuthorize()) {
+        //     await this.getOAuth2Credentials(client, config)
+        // }
+        //
+        // return client;
     }
 
     private getAuthOAuth2(config: GoogleSheetsOAuth2Config)  {
-        const oauth2Config = <GoogleSheetsOAuth2Config> this.config;
-
+        throw Error('NOT YET IMPLEMENTED')
+        // const oauth2Config = <GoogleSheetsOAuth2Config> this.config;
     }
 
     /**
@@ -87,15 +88,17 @@ export default class GoogleSheetsRepository implements Repository {
     }
 
     private async getAuth() : Promise<OAuth2Client|GoogleAuth|undefined> {
-        if (this.config instanceof GoogleSheetsOAuth2Config) {
-            if (!this.oauth2Client) this.oauth2Client = await this.createOAuth2Client(this.config);
-            return await this.authorizeOAuth2(this.config);
-        } else if (this.config instanceof GoogleSheetsServiceAccountConfig) {
-            if (!this.serviceUserAuth) this.serviceUserAuth = this.createServiceUserAuth(this.config);
-            return this.serviceUserAuth;
+        if (this.config instanceof GoogleSheetsServiceAccountConfig) {
+            if (!this.serviceUserAuth) this.serviceUserAuth = this.createServiceUserAuth(this.config)
+            return this.serviceUserAuth
         }
 
-        return undefined;
+        if (this.config instanceof GoogleSheetsOAuth2Config) {
+            if (!this.oauth2Client) this.oauth2Client = await this.createOAuth2Client(this.config)
+            return await this.authorizeOAuth2(this.config)
+        }
+
+        return undefined
     }
 
     private createServiceUserAuth(config: GoogleSheetsServiceAccountConfig) {
@@ -118,8 +121,25 @@ export default class GoogleSheetsRepository implements Repository {
 
     }
 
+    private async getDriveClient() : Promise<drive_v3.Drive> {
+        return google.drive({version: "v3", auth: await this.getAuth()})
+    }
+
+    async getSpreadsheetWebLink() : Promise<string|undefined> {
+        const drive = await this.getDriveClient()
+        try {
+            const res = await drive.files.get({
+                fileId: this.config.sheetId,
+                fields: 'webViewLink'
+            })
+            return res.data.webViewLink
+        } catch (err: any) {
+            return this.handleDriveError(err)
+        }
+    }
+
     async getModifiedTime() : Promise<Date|undefined> {
-        const drive = google.drive({version: "v3", auth: await this.getAuth()})
+        const drive = await this.getDriveClient()
         try {
             const res = await drive.files.get({
                 fileId: this.config.sheetId,
@@ -127,24 +147,24 @@ export default class GoogleSheetsRepository implements Repository {
             })
             return new Date(res.data.modifiedTime)
         } catch (err: any) {
-            const errorObject = err.response ? err.response.data.error : null;
-            if (errorObject && errorObject.code === 403 && this.isAccessNotConfiguredError(errorObject.errors)) {
-                console.warn("Google Drive API has not been added to the project, skipping modification checks");
-                this.checkModificationTime = false;
-                return;
-            }
-
-            console.error(`Could not retrieve file metadata for file ${this.config.sheetId}`, err);
-            return err;
+            return this.handleDriveError(err)
         }
     }
 
-    private async isAccessNotConfiguredError(errors: Array<any>) {
-        const errorReason = "accessNotConfigured";
-        errors.forEach(error => {
-            if (error.reason === errorReason) return true;
-        })
-        return false;
+    private handleDriveError(err: any) {
+        const errorObject = err.response ? err.response.data.error : null
+        if (errorObject && errorObject.code === 403 && this.isAccessNotConfiguredError(errorObject.errors)) {
+            console.warn("Google Drive API has not been added to the project, skipping modification checks")
+            this.checkModificationTime = false;
+            return
+        }
+
+        console.error(`Could not retrieve file metadata for file ${this.config.sheetId}`, err)
+        return undefined
+    }
+
+    private isAccessNotConfiguredError(errors: Array<any>) {
+        return errors.map((error) => error.reason).includes("accessNotConfigured")
     }
 
     async needsUpdate() : Promise<boolean> {

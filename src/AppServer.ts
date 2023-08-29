@@ -151,7 +151,12 @@ export default class AppServer {
         sheetsConfig.sheetId = this.config.spreadsheetId;
         sheetsConfig.skipFirstRow = this.config.skipFirstRow ?? true
 
-        this.repository = new GoogleSheetsRepository(sheetsConfig);
+        const googleSheetsRepo = new GoogleSheetsRepository(sheetsConfig)
+        promises.push(googleSheetsRepo.getSpreadsheetWebLink().then((link) => {
+            console.info("Using document available at: " + link)
+        }))
+
+        this.repository = googleSheetsRepo
 
         promises.push(this.addDefaultUpdateHooks())
 
