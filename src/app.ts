@@ -12,5 +12,5 @@ console.info('Reading environment variables...')
 
 const appServer = new AppServer(CONFIG);
 appServer.run().then(() => {
-    console.info("Server started")
+    console.info("Startup complete. App ready!")
 })
