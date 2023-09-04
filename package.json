@@ -25,7 +25,7 @@
     "@types/gapi": "0.0.44",
     "@types/mustache": "^4.2.2",
     "@types/node": "^20.5.7",
-    "@typescript-eslint/eslint-plugin": "^6.4.1",
+    "@typescript-eslint/eslint-plugin": "^6.5.0",
     "@typescript-eslint/parser": "^6.4.1",
     "eslint": "^8.35.0",
     "typescript": "^5.2.2"
