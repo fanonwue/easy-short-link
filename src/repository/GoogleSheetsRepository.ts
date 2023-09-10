@@ -1,10 +1,10 @@
-import Repository from "./Repository";
+import Repository from "./Repository.js";
 import {drive_v3, google} from 'googleapis';
 import {exit} from "process";
-import GoogleSheetsConfig from "../config/GoogleSheetsConfig";
-import GoogleSheetsOAuth2Config from "../config/GoogleSheetsOAuth2Config";
+import GoogleSheetsConfig from "../config/GoogleSheetsConfig.js";
+import GoogleSheetsOAuth2Config from "../config/GoogleSheetsOAuth2Config.js";
 import {Credentials, GoogleAuth, OAuth2Client} from "google-auth-library"
-import GoogleSheetsServiceAccountConfig from "../config/GoogleSheetsServiceAccountConfig";
+import GoogleSheetsServiceAccountConfig from "../config/GoogleSheetsServiceAccountConfig.js";
 
 export default class GoogleSheetsRepository implements Repository {
     private readonly config: GoogleSheetsConfig;

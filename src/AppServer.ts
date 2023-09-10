@@ -1,16 +1,16 @@
+import type {AppConfig, RedirectPageTexts, RegisteredHook} from "./types";
 import {Server, createServer, ServerResponse} from "http";
 import {setInterval} from "timers/promises";
-import Repository from "./repository/Repository";
-import GoogleSheetsRepository from "./repository/GoogleSheetsRepository";
+import Repository from "./repository/Repository.js";
+import GoogleSheetsRepository from "./repository/GoogleSheetsRepository.js";
 import {readFile} from "fs/promises";
 import url from "url"
-import GoogleSheetsConfig from "./config/GoogleSheetsConfig";
+import GoogleSheetsConfig from "./config/GoogleSheetsConfig.js";
 import path from "path";
-import GoogleSheetsOAuth2Config from "./config/GoogleSheetsOAuth2Config";
-import GoogleSheetsServiceAccountConfig from "./config/GoogleSheetsServiceAccountConfig";
-import {AppConfig, RedirectPageTexts, RegisteredHook} from "./types";
+import GoogleSheetsOAuth2Config from "./config/GoogleSheetsOAuth2Config.js";
+import GoogleSheetsServiceAccountConfig from "./config/GoogleSheetsServiceAccountConfig.js";
 import mustache, {RenderOptions} from "mustache"
-import AcceptLanguagePicker from "./AcceptLanguagePicker";
+import AcceptLanguagePicker from "./AcceptLanguagePicker.js";
 
 export default class AppServer {
     private get configPath() { return this.config.paths.configPath }

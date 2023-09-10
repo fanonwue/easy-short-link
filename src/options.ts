@@ -1,6 +1,7 @@
 import path from "path";
+import {fileURLToPath} from "url";
 import {readFileSync, existsSync} from "fs"
-import {AppConfig, AuthenticationType, ConfigFile, PathConfig} from "./types";
+import type {AppConfig, AuthenticationType, ConfigFile, PathConfig} from "./types";
 
 const toBoolean = (value: string) => {
     switch (value?.toLowerCase()) {
@@ -42,11 +43,11 @@ const toAuthenticationType = (value: string): AuthenticationType => {
     }
 }
 
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 let pathConfig: PathConfig = {
     templatesPath: path.join(__dirname, '..', 'resources'),
     configPath: path.join(__dirname, '..', 'config')
 }
-
 
 let configFile: ConfigFile
 

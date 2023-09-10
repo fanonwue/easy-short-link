@@ -5,11 +5,12 @@
   "repository": "https://github.com/fanonwue/easy-short-link",
   "main": "dist/app.js",
   "scripts": {
-    "dev": "ts-node src/app.ts",
+    "dev": "tsx src/app.ts",
     "start": "node dist/app.js",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "type": "module",
   "keywords": [
     "link-shortener",
     "link shortener",
@@ -28,7 +29,7 @@
     "@typescript-eslint/eslint-plugin": "^6.4.1",
     "@typescript-eslint/parser": "^6.4.1",
     "eslint": "^8.35.0",
-    "ts-node": "^10.9.1",
+    "tsx": "^3.12.8",
     "typescript": "^5.2.2"
   },
   "dependencies": {

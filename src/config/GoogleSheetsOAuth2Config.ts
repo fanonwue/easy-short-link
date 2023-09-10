@@ -1,11 +1,8 @@
-import GoogleSheetsConfig from "./GoogleSheetsConfig";
-import OAuth2Props from "./OAuth2Props";
-import {file} from "googleapis/build/src/apis/file";
-import AppServer from "../AppServer";
+import GoogleSheetsConfig from "./GoogleSheetsConfig.js";
 import path from "path";
 import {readFile, writeFile} from "fs/promises";
-import {CONFIG_PATH} from "../options";
-import {OAuth2Credentials} from "../types";
+import {CONFIG_PATH} from "../options.js";
+import type {OAuth2Credentials} from "../types";
 
 export default class GoogleSheetsOAuth2Config extends GoogleSheetsConfig {
     private static readonly defaultFilePath = path.join(CONFIG_PATH, 'oauth2-credentials.json');

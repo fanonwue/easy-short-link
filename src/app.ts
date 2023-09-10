@@ -1,10 +1,11 @@
-import AppServer from "./AppServer";
+import AppServer from "./AppServer.js";
 import {
     CONFIG
-} from "./options";
+} from "./options.js";
+import consoleStamp from "console-stamp";
 
 // change console logging
-require('console-stamp')(console, {
+consoleStamp(console, {
     format: ':date(yyyy-mm-dd HH:MM:ss.l) :label'
 })
 

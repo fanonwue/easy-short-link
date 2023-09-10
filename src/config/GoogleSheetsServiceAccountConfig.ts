@@ -1,8 +1,8 @@
-import GoogleSheetsConfig from "./GoogleSheetsConfig";
+import GoogleSheetsConfig from "./GoogleSheetsConfig.js";
 import path from "path";
 import {writeFileSync, existsSync} from "fs";
-import {CONFIG_PATH} from "../options";
-import {ServiceAccountCredentials} from "../types";
+import {CONFIG_PATH} from "../options.js";
+import type {ServiceAccountCredentials} from "../types";
 
 export default class GoogleSheetsServiceAccountConfig extends GoogleSheetsConfig {
     static readonly defaultKeyFile = path.join(CONFIG_PATH, 'service-account-credentials.json');
