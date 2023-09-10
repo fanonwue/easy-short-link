@@ -19,5 +19,5 @@ COPY --from=builder /var/app/node_modules node_modules/
 COPY --from=builder /var/app/resources resources/
 COPY --from=builder /var/app/dist dist/
 
-EXPOSE 5000
+EXPOSE 3000
 ENTRYPOINT ["npm", "run", "start"]
