@@ -13,7 +13,8 @@ export interface AppConfig extends ConfigFile {
     serviceAccountKeyFile?: string
     port: number
     updatePeriod: number,
-    httpCacheMaxAge: number
+    httpCacheMaxAge: number,
+    logLevel: string
 }
 
 export interface ServiceAccountCredentials {

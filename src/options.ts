@@ -73,6 +73,7 @@ const config: AppConfig = {
     updatePeriod: updatePeriod, // 5 minutes default
     httpCacheMaxAge: toInt(process.env.HTTP_CACHE_MAX_AGE) ?? updatePeriod, // use updatePeriod as default,
     serviceAccountKeyFile: process.env.SERVICE_ACCOUNT_KEY_FILE,
+    logLevel: (process.env.LOG_LEVEL ?? "debug").toLowerCase()
 }
 
 if (config.authenticationType == "service") {
