@@ -57,6 +57,9 @@ if (existsSync(configFilePath)) {
 }
 
 const updatePeriod = toInt(process.env.UPDATE_PERIOD) ?? 300
+let logLevel = process.env.LOG_LEVEL
+if (!logLevel && process.env.NODE_ENV === "production") logLevel = "info"
+if (!logLevel) logLevel = "debug"
 
 const config: AppConfig = {
     paths: pathConfig,
@@ -73,7 +76,7 @@ const config: AppConfig = {
     updatePeriod: updatePeriod, // 5 minutes default
     httpCacheMaxAge: toInt(process.env.HTTP_CACHE_MAX_AGE) ?? updatePeriod, // use updatePeriod as default,
     serviceAccountKeyFile: process.env.SERVICE_ACCOUNT_KEY_FILE,
-    logLevel: (process.env.LOG_LEVEL ?? "debug").toLowerCase()
+    logLevel: logLevel.toLowerCase()
 }
 
 if (config.authenticationType == "service") {
