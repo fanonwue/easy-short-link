@@ -1,5 +1,5 @@
 import type {AppConfig, RedirectPageTexts, RegisteredHook} from "./types";
-import {Server, createServer, ServerResponse} from "http";
+import {createServer, ServerResponse} from "http";
 import {setInterval} from "timers/promises";
 import Repository from "./repository/Repository.js";
 import GoogleSheetsRepository from "./repository/GoogleSheetsRepository.js";
@@ -28,7 +28,6 @@ export default class AppServer {
     private readonly config: AppConfig
     private readonly cacheControl: string
 
-    private server: Server
     private repository: Repository
     private updateAbortController = new AbortController()
     private mapping: Map<string, string>
@@ -47,7 +46,7 @@ export default class AppServer {
         await this.init();
         await this.startAutoUpdate()
         console.info("Starting HTTP Server...");
-        this.server = createServer(async (req, res) => {
+        createServer(async (req, res) => {
             const parsedUrl = url.parse(req.url, true)
             const redirectName = parsedUrl.pathname
             const target = this.targetUrlFor(redirectName, req.headers.host)
