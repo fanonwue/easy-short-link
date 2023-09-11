@@ -1,6 +1,8 @@
 import path from "path";
+import {configDotenv} from "dotenv";
 import {fileURLToPath} from "url";
 import {readFileSync, existsSync} from "fs"
+import consoleStamp from "console-stamp";
 import type {AppConfig, AuthenticationType, ConfigFile, PathConfig} from "./types";
 
 const toBoolean = (value: string) => {
@@ -43,6 +45,18 @@ const toAuthenticationType = (value: string): AuthenticationType => {
     }
 }
 
+configDotenv()
+
+let logLevel = process.env.LOG_LEVEL
+if (!logLevel && process.env.NODE_ENV === "production") logLevel = "info"
+if (!logLevel) logLevel = "debug"
+
+// change console logging
+consoleStamp(console, {
+    format: ':date(yyyy-mm-dd HH:MM:ss.l).yellowBright :label(8).cyanBright',
+    level: logLevel
+})
+
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 let pathConfig: PathConfig = {
     templatesPath: path.join(__dirname, '..', 'resources'),
@@ -57,9 +71,6 @@ if (existsSync(configFilePath)) {
 }
 
 const updatePeriod = toInt(process.env.UPDATE_PERIOD) ?? 300
-let logLevel = process.env.LOG_LEVEL
-if (!logLevel && process.env.NODE_ENV === "production") logLevel = "info"
-if (!logLevel) logLevel = "debug"
 
 const config: AppConfig = {
     paths: pathConfig,
