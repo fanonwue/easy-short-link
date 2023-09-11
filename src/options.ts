@@ -53,7 +53,7 @@ if (!logLevel) logLevel = "debug"
 
 // change console logging
 consoleStamp(console, {
-    format: ':date(yyyy-mm-dd HH:MM:ss.l).yellowBright :label(8).cyanBright',
+    format: ':date(yyyy-mm-dd HH:MM:ss.l).yellow :label(8).cyan',
     level: logLevel
 })
 
